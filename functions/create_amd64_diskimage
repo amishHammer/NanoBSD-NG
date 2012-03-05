@@ -1,0 +1,4 @@
+create_amd64_diskimage ( ) (
+	create_i386_diskimage
+)
+

@@ -1,0 +1,8 @@
+newfs_part ( ) (
+	local dev mnt
+	dev=$1
+	mnt=$2
+	echo newfs ${NANO_NEWFS} ${dev}
+	newfs ${NANO_NEWFS} ${dev}
+	mount -o async ${dev} ${mnt}
+)

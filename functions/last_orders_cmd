@@ -1,0 +1,3 @@
+last_orders_cmd () {
+	NANO_LAST_ORDERS="$NANO_LAST_ORDERS $1"
+}

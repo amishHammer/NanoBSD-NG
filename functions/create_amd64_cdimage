@@ -1,0 +1,5 @@
+# i386 and amd64 are identical for cd images
+create_amd64_cdimage ( ) (
+	create_i386_cdimage
+)
+

@@ -1,0 +1,5 @@
+launch_image_in_qemu ( ) (
+	IMG=${NANO_DISKIMGDIR}/${NANO_IMGNAME}
+	echo qemu -nographic -drive file=${IMG} type=raw -net pcap iface=${QEMU_IFACE:-"em0"}
+	tmux neww qemu -nographic -drive file=${IMG} type=raw -net pcap iface=${QEMU_IFACE:-"em0"}
+)

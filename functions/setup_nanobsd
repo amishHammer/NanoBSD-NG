@@ -1,0 +1,78 @@
+# Copyright (c) 2005 Poul-Henning Kamp.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+setup_nanobsd ( ) (
+	pprint 2 "configure nanobsd setup"
+	pprint 3 "log: ${NANO_OBJ}/_.dl"
+
+	(
+	cd ${NANO_WORLDDIR}
+
+	# Update login.conf db
+	chroot ${NANO_WORLDDIR} /bin/sh -exc \
+	'cap_mkdb /etc/login.conf'
+
+	# Move /usr/local/etc to /etc/local so that the /cfg stuff
+	# can stomp on it.  Otherwise packages like ipsec-tools which
+	# have hardcoded paths under ${prefix}/etc are not tweakable.
+	if [ -d usr/local/etc ] ; then
+		(
+		mkdir -p etc/local
+		cd usr/local/etc
+		find . -print | cpio -dumpl ../../../etc/local
+		cd ..
+		rm -rf etc
+		ln -s ../../etc/local etc
+		)
+	fi
+
+	# relocate /var/cron to /etc/cron
+	# This permit to save crontab (only /etc and /usr/local/etc are saved)
+	mkdir -p ${NANO_WORLDDIR}/etc/cron
+	rm -rf ${NANO_WORLDDIR}/var/cron
+	ln -s ../etc/cron ${NANO_WORLDDIR}/var/cron	
+
+	for d in var etc
+	do
+		# link /$d under /conf
+		# we use hard links so we have them both places.
+		# the files in /$d will be hidden by the mount.
+		# XXX: configure /$d ramdisk size
+		mkdir -p conf/base/$d conf/default/$d
+		find $d -print | cpio -dumpl conf/base/
+	done
+
+	echo "$NANO_RAM_ETCSIZE" > conf/base/etc/md_size
+	echo "$NANO_RAM_TMPVARSIZE" > conf/base/var/md_size
+
+	# pick up config files from the special partition
+ 	echo "mount -o ro /dev/label/${NANO_GLABEL_CFG}" > conf/default/etc/remount
+
+	# Put /tmp on the /var ramdisk (could be symlink already)
+	rmdir tmp || true
+	rm tmp || true
+	ln -s var/tmp tmp
+
+	) > ${NANO_OBJ}/_.dl 2>&1
+)
+

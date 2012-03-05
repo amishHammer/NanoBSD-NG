@@ -1,0 +1,9 @@
+# Standard vga console, but permit serial port to be use as vt100 console
+bsdrp_console_vga () {
+	sed -i "" -e /tty[du]0/s/off/on/ ${NANO_WORLDDIR}/etc/ttys
+	sed -i "" -e /tty[du]0/s/dialup/vt100/ ${NANO_WORLDDIR}/etc/ttys
+	sed -i "" -e /tty[du]0/s/9600/${NANO_CONSOLE_SPEED}/ ${NANO_WORLDDIR}/etc/ttys
+	
+	echo "comconsole_speed=\"${NANO_CONSOLE_SPEED}\"" >> ${NANO_WORLDDIR}/boot/loader.conf
+}
+

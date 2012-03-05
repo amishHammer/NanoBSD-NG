@@ -1,0 +1,7 @@
+nano_cleanup() {
+	if [ $? -ne 0 ]; then
+    	echo "Error encountered.  Check for errors in last log file." 1>&2
+    fi
+    exit $?
+}
+

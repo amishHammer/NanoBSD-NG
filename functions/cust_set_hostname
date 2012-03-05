@@ -1,0 +1,4 @@
+cust_set_hostname () (
+	echo "hostname=${TARGET_HOSTNAME}" >> ${NANO_WORLDDIR}/etc/rc.conf
+)
+

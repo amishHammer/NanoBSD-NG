@@ -1,0 +1,272 @@
+include GENERIC
+makeoptions NO_MODULES=yes
+
+ident NET5501
+
+## Setup CPU Config
+
+options CPU_SOEKRIS
+options CPU_GEODE
+nooptions SMP
+
+#ADD ACPI (missing in GENERIC for i386)
+device acpi
+
+
+## Get rid of stuff we wont use.
+nooptions COMPAT_FREEBSD4 # Compatible with FreeBSD4
+nooptions COMPAT_FREEBSD5 # Compatible with FreeBSD5
+nooptions COMPAT_FREEBSD6 # Compatible with FreeBSD6
+nooptions COMPAT_FREEBSD7 # Compatible with FreeBSD7
+
+
+
+## Build in GEOM Stuff
+options GEOM_STRIPE
+options GEOM_MIRROR
+options GEOM_GATE
+options GEOM_ELI
+options GEOM_JOURNAL
+
+## Null fs
+options NULLFS
+## File Descripter FS
+options FDESCFS
+
+## IPSec Stuff
+options IPSEC
+options IPSEC_FILTERTUNNEL
+device crypto
+device cryptodev
+device hifn
+
+## Failover stuff
+device carp
+
+## VLan Dev
+device vlan
+
+## Bridge dev
+device if_bridge
+
+## Link Aggragtion
+device lagg
+
+## IPMI Support
+device smbus
+device ipmi
+
+## Accept Filters
+options ACCEPT_FILTER_DATA
+options ACCEPT_FILTER_HTTP
+
+## Firewall Stuff
+device pf
+device pflog
+device pfsync
+
+## QoS Stuff
+options ALTQ
+options ALTQ_CBQ # Class Bases Queuing (CBQ)
+options ALTQ_RED # Random Early Detection (RED)
+options ALTQ_RIO # RED In/Out
+options ALTQ_HFSC # Hierarchical Packet Scheduler (HFSC)
+options ALTQ_PRIQ # Priority Queuing (PRIQ)
+options ALTQ_NOPCC # Required for SMP build
+
+
+##### STUFF WE DONT WANT ####
+
+## No ATA Except Disk
+nodevice fdc
+nodevice ataraid # ATA RAID drives
+nodevice atapicd # ATAPI CDROM drives
+nodevice atapifd # ATAPI floppy drives
+nodevice atapist # ATAPI tape drives
+
+### No SCSI Stuff
+nodevice ahb # EISA AHA1742 family
+nodevice ahc # AHA2940 and onboard AIC7xxx devices
+nooptions AHC_REG_PRETTY_PRINT # Print register bitfields in debug
+# output. Adds ~128k to driver.
+nodevice ahd # AHA39320/29320 and onboard AIC79xx devices
+nooptions AHD_REG_PRETTY_PRINT # Print register bitfields in debug
+# output. Adds ~215k to driver.
+nodevice amd # AMD 53C974 (Tekram DC-390(T))
+nodevice hptiop # Highpoint RocketRaid 3xxx series
+nodevice isp # Qlogic family
+nodevice ispfw # Firmware for QLogic HBAs- normally a module
+nodevice mpt # LSI-Logic MPT-Fusion
+nodevice ncr # NCR/Symbios Logic
+nodevice sym # NCR/Symbios Logic (newer chipsets + those of `ncr')
+nodevice trm # Tekram DC395U/UW/F DC315U adapters
+nodevice adv # Advansys SCSI adapters
+nodevice adw # Advansys wide SCSI adapters
+nodevice aha # Adaptec 154x SCSI adapters
+nodevice aic # Adaptec 15[012]x SCSI adapters, AIC-6[23]60.
+nodevice bt # Buslogic/Mylex MultiMaster SCSI adapters
+nodevice ncv # NCR 53C500
+nodevice nsp # Workbit Ninja SCSI-3
+nodevice stg # TMC 18C30/18C50
+# RAID controllers interfaced to the SCSI subsystem
+nodevice amr # AMI MegaRAID
+nodevice arcmsr # Areca SATA II RAID
+nodevice asr # DPT SmartRAID V, VI and Adaptec SCSI RAID
+nodevice ciss # Compaq Smart RAID 5*
+nodevice dpt # DPT Smartcache III, IV - See NOTES for options
+nodevice hptmv # Highpoint RocketRAID 182x
+nodevice hptrr # Highpoint RocketRAID 17xx, 22xx, 23xx, 25xx
+nodevice iir # Intel Integrated RAID
+nodevice ips # IBM (Adaptec) ServeRAID
+nodevice mly # Mylex AcceleRAID/eXtremeRAID
+nodevice twa # 3ware 9000 series PATA/SATA RAID
+
+# RAID controllers
+nodevice aac # Adaptec FSA RAID
+nodevice aacp # SCSI passthrough for aac (requires CAM)
+nodevice ida # Compaq Smart RAID
+nodevice mfi # LSI MegaRAID SAS
+nodevice mlx # Mylex DAC960 family
+nodevice pst # Promise Supertrak SX6000
+nodevice twe # 3ware ATA RAID
+
+# atkbdc0 controls both the keyboard and the PS/2 mouse
+nodevice atkbdc # AT keyboard controller
+nodevice atkbd # AT keyboard
+nodevice psm # PS/2 mouse
+
+nodevice kbdmux # keyboard multiplexer
+
+nodevice vga # VGA video card driver
+
+nodevice splash # Splash screen and screen saver support
+
+# syscons is the default console driver, resembling an SCO console
+nodevice sc
+
+nodevice agp # support several AGP chipsets
+
+
+
+
+## NO WiFi stuff
+nodevice wlan # 802.11 support
+nodevice wlan_wep # 802.11 WEP support
+nodevice wlan_ccmp # 802.11 CCMP support
+nodevice wlan_tkip # 802.11 TKIP support
+nodevice wlan_amrr # AMRR transmit rate control algorithm
+nodevice wlan_scan_ap # 802.11 AP mode scanning
+nodevice wlan_scan_sta # 802.11 STA mode scanning
+nodevice an # Aironet 4500/4800 802.11 wireless NICs.
+nodevice ath # Atheros pci/cardbus NIC's
+nodevice ath_hal # Atheros HAL (Hardware Access Layer)
+nodevice ath_rate_sample # SampleRate tx rate control for ath
+nodevice awi # BayStack 660 and others
+nodevice ral # Ralink Technology RT2500 wireless NICs.
+nodevice wi # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+
+## No pseudo devs
+nodevice sl ## No SLIP
+nodevice ppp ## No PPP
+nodevice faith ## No 6 in 4
+nodevice plip ## No PLIP
+
+## PCMCIA
+nodevice cbb # cardbus (yenta) bridge
+nodevice pccard # PC Card (16-bit) bus
+nodevice cardbus # CardBus (32-bit) bus
+
+# Parallel port
+nodevice ppc
+nodevice ppbus # Parallel port bus (required)
+nodevice lpt # Printer
+nodevice plip # TCP/IP over parallel
+nodevice ppi # Parallel port interface device
+#device vpo # Requires scbus and da
+
+# PCI Ethernet NICs.
+nodevice de # DEC/Intel DC21x4x (``Tulip'')
+nodevice em # Intel PRO/1000 Gigabit Ethernet Family
+nodevice igb # Intel PRO/1000 PCIE Server Gigabit Family
+nodevice ixgb # Intel PRO/10GbE Ethernet Card
+nodevice le # AMD Am7900 LANCE and Am79C9xx PCnet
+nodevice txp # 3Com 3cR990 (``Typhoon'')
+nodevice vx # 3Com 3c590, 3c595 (``Vortex'')
+
+# PCI Ethernet NICs that use the common MII bus controller code.
+# NOTE: Be sure to keep the 'device miibus' line in order to use these NICs!
+nodevice age # Attansic/Atheros L1 Gigabit Ethernet
+#device ale # Atheros AR8121/AR8113/AR8114 Ethernet
+nodevice bce # Broadcom BCM5706/BCM5708 Gigabit Ethernet
+nodevice bfe # Broadcom BCM440x 10/100 Ethernet
+nodevice bge # Broadcom BCM570xx Gigabit Ethernet
+nodevice dc # DEC/Intel 21143 and various workalikes
+nodevice et # Agere ET1310 10/100/Gigabit Ethernet
+nodevice fxp # Intel EtherExpress PRO/100B (82557, 82558)
+nodevice jme # JMicron JMC250 Gigabit/JMC260 Fast Ethernet
+nodevice lge # Level 1 LXT1001 gigabit Ethernet
+nodevice msk # Marvell/SysKonnect Yukon II Gigabit Ethernet
+nodevice nfe # nVidia nForce MCP on-board Ethernet
+nodevice nge # NatSemi DP83820 gigabit Ethernet
+#device nve # nVidia nForce MCP on-board Ethernet Networking
+nodevice pcn # AMD Am79C97x PCI 10/100 (precedence over 'le')
+nodevice re # RealTek 8139C+/8169/8169S/8110S
+nodevice rl # RealTek 8129/8139
+nodevice sf # Adaptec AIC-6915 (``Starfire'')
+nodevice sis # Silicon Integrated Systems SiS 900/SiS 7016
+nodevice sk # SysKonnect SK-984x & SK-982x gigabit Ethernet
+nodevice ste # Sundance ST201 (D-Link DFE-550TX)
+nodevice stge # Sundance/Tamarack TC9021 gigabit Ethernet
+nodevice ti # Alteon Networks Tigon I/II gigabit Ethernet
+nodevice tl # Texas Instruments ThunderLAN
+nodevice tx # SMC EtherPower II (83c170 ``EPIC'')
+nodevice vge # VIA VT612x gigabit Ethernet
+nodevice wb # Winbond W89C840F
+nodevice xl # 3Com 3c90x (``Boomerang'', ``Cyclone'')
+
+# ISA Ethernet NICs. pccard NICs included.
+nodevice cs # Crystal Semiconductor CS89x0 NIC
+nodevice ed # NE[12]000, SMC Ultra, 3c503, DS8390 cards
+nodevice ex # Intel EtherExpress Pro/10 and Pro/10+
+nodevice ep # Etherlink III based cards
+nodevice fe # Fujitsu MB8696x based cards
+nodevice sn # SMC's 9000 series of Ethernet chips
+nodevice xe # Xircom pccard Ethernet
+
+## USB
+nodevice uhid # "Human Interface Devices"
+nodevice ukbd # Keyboard
+nodevice ulpt # Printer
+nodevice ums # Mouse
+nodevice rum
+nodevice uath		# Atheros AR5523 wireless NICs
+nodevice ural		# Ralink Technology RT2500USB wireless NICs
+nodevice zyd		# ZyDAS zb1211/zb1211b wireless NICs
+nodevice urio # Diamond Rio 500 MP3 player
+nodevice uscanner # Scanners
+# USB Serial devices
+nodevice ucom # Generic com ttys
+nodevice uark # Technologies ARK3116 based serial adapters
+nodevice ubsa # Belkin F5U103 and compatible serial adapters
+nodevice ubser # BWCT console serial adapters
+nodevice uftdi # For FTDI usb serial adapters
+nodevice uipaq # Some WinCE based devices
+nodevice uplcom # Prolific PL-2303 serial adapters
+nodevice uslcom # SI Labs CP2101/CP2102 serial adapters
+nodevice uvisor # Visor and Palm devices
+nodevice uvscom # USB serial support for DDI pocket's PHS
+# USB Ethernet, requires miibus
+nodevice aue # ADMtek USB Ethernet
+nodevice axe # ASIX Electronics USB Ethernet
+nodevice cdce # Generic USB over Ethernet
+nodevice cue # CATC USB Ethernet
+nodevice kue # Kawasaki LSI USB Ethernet
+nodevice rue # RealTek RTL8150 USB Ethernet
+
+# FireWire support
+nodevice firewire # FireWire bus code
+nodevice sbp # SCSI over FireWire (Requires scbus and da)
+nodevice fwe # Ethernet over FireWire (non-standard!)
+nodevice fwip # IP over FireWire (RFC 2734,3146)
+nodevice dcons # Dumb console driver
+nodevice dcons_crom # Configuration ROM for dcons 

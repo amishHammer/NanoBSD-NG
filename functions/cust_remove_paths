@@ -1,0 +1,22 @@
+cust_remove_paths() {
+	pprint 2 "Removing Files"
+	FILES_TO_REMOVE=""
+	if [ -e targets/${NANO_TARGET}/remove.list ]; then
+		FILES_TO_REMOVE="${FILES_TO_REMOVE} `cat targets/${NANO_TARGET}/remove.list`"
+	fi
+	if [ -e targets/${NANO_TARGET}/${NANO_ARCH}/remove.list ]; then
+		FILES_TO_REMOVE="${FILES_TO_REMOVE} `cat targets/${NANO_TARGET}/${NANO_ARCH}/remove.list`"
+	fi
+
+	for c in "${FILES_TO_REMOVE}"; do
+		if [ -f ${NANO_WORLDDIR}/$c ];
+		then
+			pprint 3 "Removing ${NANO_WORLDDIR}/$c"
+			rm -rf ${NANO_WORLDDIR}/$c
+			if [ $? != 0 ]; then
+				pprint 3 "Error: Can't remove: $c"
+			fi
+		fi
+	done
+}
+	

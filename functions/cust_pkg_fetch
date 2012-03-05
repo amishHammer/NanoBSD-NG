@@ -1,0 +1,30 @@
+cust_pkg_fetch () {
+	if [ -e targets/${NANO_TARGET}/package.list ]; then
+		PKG_LIST=`cat targets/${NANO_TARGET}/package.list`
+	fi 
+	if [ -e targets/${NANO_TARGET}/${NANO_ARCH}/package.list ]; then
+		PKG_LIST=`cat targets/${NANO_TARGET}/${NANO_ARCH}/package.list`
+	fi 
+	if [ -e ${NANO_WORLDDIR}/etc/resolv.conf ]; then
+		mv   ${NANO_WORLDDIR}/etc/resolv.conf  ${NANO_WORLDDIR}/etc/resolv.conf.install_pkgs
+	fi
+	cp /etc/resolv.conf ${NANO_WORLDDIR}/etc/resolv.conf
+	todo=`echo "${PKG_LIST}" | wc -w`
+	pprint 3 "TODO: $todo"
+	for PKG in ${PKG_LIST}; do 
+		pprint 4 "Installing ${PKG}"
+		chroot ${NANO_WORLDDIR} sh -c "pkg_add -r ${PKG}" || true
+		if type pkg_${PKG}; then
+			pprint 4 "Registering post install customize command for: ${PKG}"
+			NANO_PKG_POST_CMDS="${NANO_PKG_POST_CMDS} pkg_${PKG}"
+		fi
+	done
+
+	if [ -e ${NANO_WORLDDIR}/etc/resolv.conf.install_pkgs ]; then
+		mv   ${NANO_WORLDDIR}/etc/resolv.conf.install_pkgs  ${NANO_WORLDDIR}/etc/resolv.conf
+	else 
+		rm ${NANO_WORLDDIR}/etc/resolv.conf
+	fi
+
+}
+

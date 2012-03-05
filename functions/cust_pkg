@@ -1,0 +1,72 @@
+# Copyright (c) 2005 Poul-Henning Kamp.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#######################################################################
+
+cust_pkg () (
+	NANO_PACKAGE_DIR="targets/${NANO_TARGET}/${NANO_ARCH}/Pkg"
+	if [ ! -d ${NANO_PACKAGE_DIR} ]; then
+		return
+	fi
+	# Copy packages into chroot
+	mkdir -p ${NANO_WORLDDIR}/Pkg
+	(
+		cd {NANO_PACKAGE_DIR}
+		find ${NANO_PACKAGE_LIST} -print |
+		    cpio -dumpv ${NANO_WORLDDIR}/Pkg
+	)
+
+	# Count & report how many we have to install
+	todo=`ls ${NANO_WORLDDIR}/Pkg | wc -l`
+	echo "=== TODO: $todo"
+	ls ${NANO_WORLDDIR}/Pkg
+	echo "==="
+	while true
+	do
+		# Record how many we have now
+		have=`ls ${NANO_WORLDDIR}/var/db/pkg | wc -l`
+
+		# Attempt to install more packages
+		# ...but no more than 200 at a time due to pkg_add's internal
+		# limitations.
+		chroot ${NANO_WORLDDIR} sh -c \
+			'ls Pkg/*tbz | xargs -n 200 pkg_add -F' || true
+
+		# See what that got us
+		now=`ls ${NANO_WORLDDIR}/var/db/pkg | wc -l`
+		echo "=== NOW $now"
+		ls ${NANO_WORLDDIR}/var/db/pkg
+		echo "==="
+
+
+		if [ $now -eq $todo ] ; then
+			echo "DONE $now packages"
+			break
+		elif [ $now -eq $have ] ; then
+			echo "FAILED: Nothing happened on this pass"
+			exit 2
+		fi
+	done
+	rm -rf ${NANO_WORLDDIR}/Pkg
+)
+

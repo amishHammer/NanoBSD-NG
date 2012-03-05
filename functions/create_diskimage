@@ -1,0 +1,168 @@
+create_diskimage ( ) {
+	pprint 2 "build diskimage"
+	pprint 3 "log: ${MAKEOBJDIRPREFIX}/_.di"
+
+	(
+	echo "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
+	echo "NANO_IMAGES:	$NANO_IMAGES"
+	echo "NANO_SECTS:	$NANO_SECTS"
+	echo "NANO_HEADS:	$NANO_HEADS"
+	echo "NANO_CODESIZE:	$NANO_CODESIZE"
+	echo "NANO_CONFSIZE:	$NANO_CONFSIZE"
+	echo "NANO_DATASIZE:	$NANO_DATASIZE"
+
+
+	## Calculate the fdisk disk layout.
+	echo $NANO_MEDIASIZE $NANO_IMAGES \
+		$NANO_SECTS $NANO_HEADS \
+		$NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
+	awk '
+	{
+		printf "# %s\n", $0
+
+		# size of cylinder in sectors
+		cs = $3 * $4
+
+		# number of full cylinders on media
+		cyl = int ($1 / cs)
+
+		# output fdisk geometry spec, truncate cyls to 1023
+		if (cyl <= 1023)
+			print "g c" cyl " h" $4 " s" $3
+		else
+			print "g c" 1023 " h" $4 " s" $3
+
+		if ($7 > 0) { 
+			# size of data partition in full cylinders
+			dsl = int (($7 + cs - 1) / cs)
+		} else {
+			dsl = 0;
+		}
+
+		# size of config partition in full cylinders
+		csl = int (($6 + cs - 1) / cs)
+
+		if ($5 == 0) {
+			# size of image partition(s) in full cylinders
+			isl = int ((cyl - dsl - csl) / $2)
+		} else {
+			isl = int (($5 + cs - 1) / cs)
+		}
+
+		# First image partition start at second track
+		print "p 1 165 " $3, isl * cs - $3
+		c = isl * cs;
+
+		# Second image partition (if any) also starts offset one 
+		# track to keep them identical.
+		if ($2 > 1) {
+			print "p 2 165 " $3 + c, isl * cs - $3
+			c += isl * cs;
+		}
+
+		# Config partition starts at cylinder boundary.
+		print "p 3 165 " c, csl * cs
+		c += csl * cs
+
+		# Data partition (if any) starts at cylinder boundary.
+		if ($7 > 0) {
+			print "p 4 165 " c, dsl * cs
+		} else if ($7 < 0 && $1 > c) {
+			print "p 4 165 " c, $1 - c
+		} else if ($1 < c) {
+			print "Disk space overcommitted by", \
+			    c - $1, "sectors" > "/dev/stderr"
+			exit 2
+		}
+
+		# Force slice 1 to be marked active. This is necessary
+		# for booting the image from a USB device to work.
+		print "a 1"
+	}
+	' > ${NANO_OBJ}/_.fdisk
+
+	IMG=${NANO_DISKIMGDIR}/${NANO_IMGNAME}
+	MNT=${NANO_OBJ}/_.mnt
+	mkdir -p ${MNT}
+
+	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
+		MD=`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} \
+			-y ${NANO_HEADS}`
+	else
+		echo "Creating md backing file..."
+		rm -f ${IMG}
+		dd if=/dev/zero of=${IMG} seek=${NANO_MEDIASIZE} count=0
+		MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} \
+			-y ${NANO_HEADS}`
+	fi
+
+	trap "echo 'Running exit trap code' ; df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+
+	## Label the base disk
+	nano_disk=${MD}
+	fdisk -i -f ${NANO_OBJ}/_.fdisk ${nano_disk}
+	fdisk ${nano_disk}
+
+	## Install the boot loader on i386 and amd64 only.
+	if [ ${NANO_ARCH} = "i386" -o ${NANO_ARCH} = "amd64" ]; then
+		# XXX: params
+		# XXX: pick up cached boot* files, they may not be in image anymore.
+		echo "Installing boot code: boot0cfg -B -b ${NANO_WORLDDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${nano_disk}"
+		boot0cfg -B -b ${NANO_WORLDDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${nano_disk}
+	fi
+
+	## Label the slices directly not the FS's so that the update scripts 
+	## can use the label's and not the device names.
+	bsdlabel -w -B -b ${NANO_WORLDDIR}/boot/boot ${nano_disk}s1
+	bsdlabel ${nano_disk}s1
+	glabel label ${NANO_GLABEL_SYS}1 ${nano_disk}s1a
+	nano_slice1=/dev/label/${NANO_GLABEL_SYS}1
+
+	# Create first image
+	populate_slice ${nano_slice1} ${NANO_WORLDDIR} ${MNT}
+	mount ${nano_slice1} ${MNT}
+	echo "Generating mtree..."
+	( cd ${MNT} && mtree -c ) > ${NANO_OBJ}/_.mtree
+	( cd ${MNT} && du -k ) > ${NANO_OBJ}/_.du
+	umount ${MNT}
+
+	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
+		bsdlabel -w -B -b ${NANO_WORLDDIR}/boot/boot ${nano_disk}s2
+		bsdlabel ${nano_disk}s2
+		glabel label ${NANO_GLABEL_SYS}2 ${nano_disk}s2a
+		nano_slice2=/dev/label/${NANO_GLABEL_SYS}2
+
+		# Duplicate to second image (if present)
+		echo "Duplicating to second image..."
+		dd if=${nano_slice1} of=${nano_slice2} bs=64k conv=sparse
+		mount ${nano_slice2} ${MNT}
+		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
+		do
+			sed -i "" "s/${NANO_GLABEL_SYS}1/${NANO_GLABEL_SYS}2/g" $f
+		done
+		umount ${MNT}
+	fi
+
+ 	# Create Config slice and set label
+	glabel label ${NANO_GLABEL_CFG} ${nano_disk}s3
+	populate_slice /dev/label/${NANO_GLABEL_CFG} "${NANO_CFGDIR}" ${MNT}
+
+	# Create Data slice, if any.
+	if [ $NANO_DATASIZE -ne 0 ] ; then
+		glabel label ${NANO_GLABEL_DATA} ${nano_disk}s4
+		populate_slice /dev/label/${NANO_GLABEL_DATA} "${NANO_DATADIR}" ${MNT}
+	fi
+
+	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
+		echo "Writing out ${NANO_IMGNAME}..."
+		dd if=/dev/${MD} of=${IMG} bs=64k conv=sparse
+	fi
+
+	echo "Writing out _.disk.image..."
+	dd if=${nano_slice1} of=${NANO_DISKIMGDIR}/_.disk.image bs=64k conv=sparse
+	mdconfig -d -u $MD
+
+	trap - 1 2 15 EXIT
+
+	) > ${NANO_OBJ}/_.di 2>&1
+}

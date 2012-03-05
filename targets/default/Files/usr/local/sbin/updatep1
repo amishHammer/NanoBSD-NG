@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# Copyright (c) 2004-2005 Poul-Henning Kamp.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+# $FreeBSD: releng/8.1/tools/tools/nanobsd/Files/root/updatep2 150412 2005-09-21 09:40:45Z phk $
+#
+# Script to update partition 2 on a NanoBSD system.
+#
+# usage:
+#	ssh somewhere cat image.s1 | sh updatep2
+#
+
+set -e
+
+. /etc/nanobsd.conf
+
+name=${0##*/}
+
+case $name
+in 
+updatep1)
+	index=1
+	other_index=2
+	update_part=/dev/label/${NANO_GLABEL_SYS}1
+	;;
+updatep2)
+	index=2
+	other_index=1
+	update_part=/dev/label/${NANO_GLABEL_SYS}2
+	;;
+*)
+	echo "Bad invocation"
+	exit 1
+	;;
+esac
+
+if mount | grep ${update_part} > /dev/null ; then
+	echo "You are running partition ${index} already"
+	echo "you probably want to use 'updatep${other_index}' instead"
+	exit 1
+fi
+
+# Blow away old system.
+dd if=/dev/zero of=${update_part} bs=1m count=1 > /dev/null 2>&1
+
+# Copy in new system
+dd of=${update_part} obs=64k
+
+# Check that it worked
+fsck_ffs -n ${update_part}
+
+# Update the /etc/fstab
+trap "umount /mnt" 1 2 15 EXIT
+mount ${update_part} /mnt
+sed -i "" "s/${NANO_GLABEL_SYS}${other_index}/${NANO_GLABEL_SYS}${index}/" /mnt/conf/base/etc/fstab
+sed -i "" "s/${NANO_GLABEL_SYS}${other_index}/${NANO_GLABEL_SYS}${index}/" /mnt/etc/fstab
+umount /mnt
+trap 1 2 15 EXIT
+boot_dev=/dev/`glabel status | grep ${NANO_GLABEL_SYS}${index} | awk '{ print $3; }' | cut -d s -f 1`
+boot0cfg -s ${index} -v ${boot_dev}

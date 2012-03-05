@@ -1,0 +1,12 @@
+create_i386_cdimage () (
+	pprint 2 "Create CD Image"
+	(
+	cd ${NANO_WORLDDIR}
+	rm -f conf/default/etc/remount
+	touch conf/default/etc/.keepme
+	touch conf/default/var/.keepme
+	cd ..
+	mkisofs -quiet -r -J -no-emul-boot -b boot/cdboot -o _.disk.iso _.w/
+	)
+)
+

@@ -1,0 +1,14 @@
+populate_slice ( ) (
+	local dev dir mnt
+	dev=$1
+	dir=$2
+	mnt=$3
+	test -z $2 && dir=/var/empty
+	test -d $dir || dir=/var/empty
+	echo "Creating ${dev} with ${dir} (mounting on ${mnt})"
+	newfs_part $dev $mnt
+	cd ${dir}
+	find . -print | grep -Ev '/(CVS|\.svn)' | cpio -dumpv ${mnt}
+	df -i ${mnt}
+	umount ${mnt}
+)

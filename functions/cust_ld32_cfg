@@ -1,0 +1,7 @@
+cust_ld32_cfg () (
+	cd ${NANO_WORLDDIR}/libexec
+	if [ \! -f ld-elf32.so.1 ]; then
+	ln -s ld-elf.so.1 ld-elf32.so.1
+	fi
+)
+

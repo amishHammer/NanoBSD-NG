@@ -1,0 +1,7 @@
+cust_compress_kernel() {
+	if [ -f ${NANO_WORLDDIR}/boot/kernel/kernel ]; then
+		if ! gzip -v9 ${NANO_WORLDDIR}/boot/kernel/kernel; then
+			echo "Error during zipping the kernel"
+		fi
+	fi
+}

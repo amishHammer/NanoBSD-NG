@@ -1,0 +1,21 @@
+# Enable use of keyboard/vga and serial
+#
+###### Warning ####
+# BUG TO FIX: Don't boot if no serial port available!
+#
+cust_console_dual () {
+	sed -i "" -e /tty[du]0/s/off/on/ ${NANO_WORLDDIR}/etc/ttys
+	sed -i "" -e /tty[du]0/s/dialup/vt100/ ${NANO_WORLDDIR}/etc/ttys
+	sed -i "" -e /tty[du]0/s/9600/${NANO_CONSOLE_SPEED}/ ${NANO_WORLDDIR}/etc/ttys
+
+	# Tell loader to use serial and vga console.
+   	echo ${NANO_BOOT2CFG} > ${NANO_WORLDDIR}/boot.config
+
+	# Customize loader.conf file:
+	echo 'boot_multicons="YES"' >> ${NANO_WORLDDIR}/boot/loader.conf
+	echo 'boot_serial="YES"' >> ${NANO_WORLDDIR}/boot/loader.conf
+	echo "comconsole_speed=\"${NANO_CONSOLE_SPEED}\"" >> ${NANO_WORLDDIR}/boot/loader.conf
+	echo 'console="comconsole,vidconsole"' >> ${NANO_WORLDDIR}/boot/loader.conf
+
+}
+

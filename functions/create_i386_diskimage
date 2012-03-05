@@ -1,0 +1,4 @@
+create_i386_diskimage ( ) (
+	create_diskimage
+)
+

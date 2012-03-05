@@ -1,0 +1,56 @@
+# Copyright (c) 2005 Poul-Henning Kamp.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+setup_nanobsd_etc ( ) (
+	pprint 2 "configure nanobsd /etc"
+
+	(
+	cd ${NANO_WORLDDIR}
+
+	# create diskless marker file
+	touch etc/diskless
+
+	# Make root filesystem R/O by default
+	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
+
+ 	case "${NANO_IMAGE_TYPE}" 
+	in 
+	disk)
+		# Set the active partition or scripts
+		echo "/dev/label/${NANO_GLABEL_SYS}1 / ufs ro 1 1" > etc/fstab
+		echo "/dev/label/${NANO_GLABEL_CFG} /cfg ufs rw,noauto 2 2" >> etc/fstab
+		echo "NANO_GLABEL_SYS=${NANO_GLABEL_SYS}" > etc/nanobsd.conf
+		echo "NANO_GLABEL_CFG=${NANO_GLABEL_CFG}" >> etc/nanobsd.conf
+		echo "NANO_GLABEL_DATA=${NANO_GLABEL_DATA}" >> etc/nanobsd.conf
+		;;
+	cd)
+		echo "/dev/acd0 / cd9660 ro 0 0" > etc/fstab
+		echo "tmpfs /tmp tmpfs rw,size=268435456,mode=1777 0 0" >> etc/fstab
+		echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
+	;;
+	esac
+
+	mkdir -p cfg
+	)
+)
+

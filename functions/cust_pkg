@@ -33,7 +33,7 @@ cust_pkg () (
 	(
 		cd {NANO_PACKAGE_DIR}
 		find ${NANO_PACKAGE_LIST} -print |
-		    cpio -dumpv ${NANO_WORLDDIR}/Pkg
+		    cpio -Ldumpv ${NANO_WORLDDIR}/Pkg
 	)
 
 	# Count & report how many we have to install

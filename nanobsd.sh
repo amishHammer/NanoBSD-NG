@@ -286,6 +286,9 @@ else
 fi
 
 if $do_kernel ; then
+	if ! $do_world ; then
+		make_conf_build
+	fi
 	build_kernel
 else
 	pprint 2 "Skipping buildkernel (as instructed)"

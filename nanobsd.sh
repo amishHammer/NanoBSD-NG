@@ -57,9 +57,10 @@ done
 
 usage () {
 	(
-	echo "Usage: $0 [-bikqvw] [-a target_arch] -t target_name"
+	echo "Usage: $0 [-bfikqvw] [-a target_arch] -t target_name"
 	echo "	-a	target cpu architecture (amd64/arm/i386/sparc64)"
 	echo "	-b	suppress builds (both kernel and world)"
+	echo "	-f	suppress code slice extraction"
 	echo "	-i	suppress disk image build"
 	echo "	-k	suppress buildkernel"
 	echo "	-n	add -DNO_CLEAN to buildworld, buildkernel, etc"
@@ -78,9 +79,10 @@ do_clean=true
 do_kernel=true
 do_world=true
 do_image=true
+do_copyout_partition=true
 
 set +e
-args=`getopt bt:a:hiknqvw $*`
+args=`getopt bt:a:fhiknqvw $*`
 if [ $? -ne 0 ] ; then
 	usage
 	exit 2
@@ -109,6 +111,10 @@ do
 	-a)
 		NANO_ARCH="$2"
 		shift
+		shift
+		;;
+	-f)
+		do_copyout_partition=false
 		shift
 		;;
 	-h)

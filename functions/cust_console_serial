@@ -32,6 +32,7 @@ cust_console_serial () (
 	sed -i "" -e '/^ttyv[0-8]/s/	on/	off/' ${NANO_WORLDDIR}/etc/ttys
 	sed -i "" -e /tty[du]0/s/9600/${NANO_CONSOLE_SPEED}/ ${NANO_WORLDDIR}/etc/ttys
 
+	# Tell loader to use serial console early.
    	echo ${NANO_BOOT2CFG} > ${NANO_WORLDDIR}/boot.config
 
 	echo 'boot_serial="YES"' >> ${NANO_WORLDDIR}/boot/loader.conf

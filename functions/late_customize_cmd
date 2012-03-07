@@ -23,10 +23,10 @@
 # SUCH DAMAGE.
 #######################################################################
 # Convenience function:
-# 	Register $1 as late customize function to run just before
+# 	Register all args as late customize function to run just before
 #	image creation.
 
 late_customize_cmd () {
-	NANO_LATE_CUSTOMIZE="$NANO_LATE_CUSTOMIZE $1"
+	NANO_LATE_CUSTOMIZE="$NANO_LATE_CUSTOMIZE $*"
 }
 

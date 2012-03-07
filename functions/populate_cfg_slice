@@ -1,0 +1,3 @@
+populate_cfg_slice ( ) (
+    populate_slice "$1" "$2" "$3" "$4"
+)

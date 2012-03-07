@@ -23,8 +23,8 @@
 # SUCH DAMAGE.
 
 install_kernel ( ) (
-	pprint 2 "install kernel"
-	pprint 3 "log: ${NANO_OBJ}/_.ik"
+    pprint 2 "install kernel ($NANO_KERNEL)"
+    pprint 3 "log: ${NANO_OBJ}/_.ik"
 
 	setup_kernel_conf_vars
 

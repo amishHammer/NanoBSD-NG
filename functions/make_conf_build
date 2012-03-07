@@ -37,4 +37,6 @@ make_conf_build ( ) (
 	if [ -e targets/${NANO_TARGET}/${NANO_ARCH}/make.conf.build ]; then
 		cat targets/${NANO_TARGET}/${NANO_ARCH}/make.conf.build >> ${NANO_MAKE_CONF_BUILD} 
 	fi
+
+	echo "SRCCONF=/dev/null" >> ${NANO_MAKE_CONF_BUILD}
 )

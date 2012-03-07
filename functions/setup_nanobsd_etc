@@ -33,21 +33,20 @@ setup_nanobsd_etc ( ) (
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
+	# save config file for scripts
+    echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
+
  	case "${NANO_IMAGE_TYPE}" 
 	in 
 	disk)
-		# Set the active partition or scripts
-		echo "/dev/label/${NANO_GLABEL_SYS}1 / ufs ro 1 1" > etc/fstab
-		echo "/dev/label/${NANO_GLABEL_CFG} /cfg ufs rw,noauto 2 2" >> etc/fstab
-		echo "NANO_GLABEL_SYS=${NANO_GLABEL_SYS}" > etc/nanobsd.conf
-		echo "NANO_GLABEL_CFG=${NANO_GLABEL_CFG}" >> etc/nanobsd.conf
-		echo "NANO_GLABEL_DATA=${NANO_GLABEL_DATA}" >> etc/nanobsd.conf
+    	echo "/dev/${NANO_DRIVE}s1a / ufs ro 1 1" > etc/fstab
+    	echo "/dev/${NANO_DRIVE}s3 /cfg ufs rw,noauto 2 2" >> etc/fstab
 		;;
 	cd)
 		echo "/dev/acd0 / cd9660 ro 0 0" > etc/fstab
 		echo "tmpfs /tmp tmpfs rw,size=268435456,mode=1777 0 0" >> etc/fstab
 		echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
-	;;
+		;;
 	esac
 
 	mkdir -p cfg

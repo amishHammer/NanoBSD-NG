@@ -24,7 +24,7 @@
 #######################################################################
 # Install the stuff under ./Files
 
-cust_install_files () (
+install_files () (
 	if [ -d targets/default/Files ]; then
 	(
 		cd targets/default/Files

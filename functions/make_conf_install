@@ -47,6 +47,6 @@ make_conf_install ( ) (
 	if [ -e targets/${NANO_TARGET}/${NANO_ARCH}/make.conf.install ]; then
 		cat targets/${NANO_TARGET}/${NANO_ARCH}/make.conf.install >> ${NANO_MAKE_CONF_INSTALL} 
 	fi
-
+	echo "SRCCONF=/dev/null" >> ${NANO_MAKE_CONF_INSTALL}
 )
 

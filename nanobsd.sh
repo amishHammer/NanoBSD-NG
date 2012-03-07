@@ -57,14 +57,14 @@ done
 
 usage () {
 	(
-	echo "Usage: $0 [-bfikqvw] [-a target_arch] -t target_name"
+	echo "Usage: $0 [-bfiknqvw] [-a target_arch] -t target_name"
 	echo "	-a	target cpu architecture (amd64/arm/i386/sparc64)"
 	echo "	-b	suppress builds (both kernel and world)"
 	echo "	-f	suppress code slice extraction"
 	echo "	-i	suppress disk image build"
 	echo "	-k	suppress buildkernel"
 	echo "	-n	add -DNO_CLEAN to buildworld, buildkernel, etc"
-	echo "	-q	make output quiter"
+	echo "	-q	make output more quiet"
 	echo "	-v	make output more verbose"
 	echo "	-w	suppress buildworld"
 	echo "	-t	nanobsd target to build"
@@ -245,17 +245,25 @@ else
 	NANO_PMAKE="${NANO_PMAKE} -DNO_CLEAN"
 fi
 
+# Override user's NANO_DRIVE if they specified a NANO_LABEL
+if [ ! -z "${NANO_LABEL}" ]; then
+    NANO_DRIVE=ufs/${NANO_LABEL}
+fi
+
 export MAKEOBJDIRPREFIX
 
 export NANO_ARCH
+export NANO_CFGDIR
 export NANO_CODESIZE
 export NANO_CONFSIZE
 export NANO_CUSTOMIZE
+export NANO_DATADIR
 export NANO_DATASIZE
 export NANO_DRIVE
 export NANO_HEADS
 export NANO_IMAGES
 export NANO_IMGNAME
+export NANO_LABEL
 export NANO_MAKE_CONF_BUILD
 export NANO_MAKE_CONF_INSTALL
 export NANO_MEDIASIZE
@@ -268,6 +276,7 @@ export NANO_SRC
 export NANO_TOOLS
 export NANO_WORLDDIR
 export NANO_BOOT0CFG
+export NANO_BOOT2CFG
 export NANO_BOOTLOADER
 
 #######################################################################
@@ -306,6 +315,7 @@ install_world
 install_etc
 setup_nanobsd_etc
 install_kernel
+install_files
 
 run_command_set "${NANO_CUSTOMIZE}"
 run_command_set "${NANO_PKG_POST_CMDS}"

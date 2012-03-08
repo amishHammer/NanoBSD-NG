@@ -54,7 +54,7 @@ updatep2)
 	;;
 esac
 
-if mount | grep "/dev/${NANO_DRIVE}s${index}a on / " > /dev/null ; then
+if mount | grep -q "/dev/${NANO_DRIVE}s${index}a on / "; then
 	echo "You are running partition ${index} already"
 	echo "you probably want to use 'updatep${old_index}' instead"
 	exit 1

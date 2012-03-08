@@ -29,6 +29,21 @@
 
 set -e
 
+# Where to find the NanoBSD-NG code base
+# Default: The directory the script is being run from
+
+if [ "x${NANO_TOOLS}" = "x" ]; then 
+	NANO_TOOLS=`dirname $0`
+	echo "NANO_TOOLS set to ${NANO_TOOLS}"
+fi
+
+if [ -d ${NANO_TOOLS} ] ; then
+	true
+else
+	echo "NANO_TOOLS directory does not exist: ${NANO_TOOLS}" 1>&2
+	exit 1
+fi
+
 #######################################################################
 #
 # Pull in the defaut variable settings from:
@@ -36,7 +51,7 @@ set -e
 #
 #######################################################################
 
-. targets/default/nanobsd.conf
+. ${NANO_TOOLS}/targets/default/nanobsd.conf
 
 #######################################################################
 #
@@ -44,7 +59,7 @@ set -e
 #
 #######################################################################
 
-for FUNC in `find functions -type f | grep -Ev '(CVS|\.svn|\.swp)'`; do
+for FUNC in `find ${NANO_TOOLS}/functions -type f | grep -Ev '(CVS|\.svn|\.swp)'`; do
 	. ${FUNC}
 done
 
@@ -185,20 +200,20 @@ trap "nano_cleanup" EXIT
 #
 #######################################################################
 
-if [ ! -d targets/${NANO_TARGET} ]; then
+if [ ! -d ${NANO_TOOLS}/targets/${NANO_TARGET} ]; then
 	echo "Build target not found" 1>&2
 	exit 1
 fi
 
-if [ ! -e targets/${NANO_TARGET}/nanobsd.conf ]; then
+if [ ! -e ${NANO_TOOLS}/targets/${NANO_TARGET}/nanobsd.conf ]; then
 	echo "Build target nanobsd.conf not found" 1>&2
 	exit 1
 fi
 
-. targets/${NANO_TARGET}/nanobsd.conf
+. ${NANO_TOOLS}/targets/${NANO_TARGET}/nanobsd.conf
 
-if [ -e targets/${NANO_TARGET}/${NANO_ARCH}/nanobsd.conf ]; then
-	. targets/${NANO_TARGET}/${NANO_ARCH}/nanobsd.conf
+if [ -e ${NANO_TOOLS}/targets/${NANO_TARGET}/${NANO_ARCH}/nanobsd.conf ]; then
+	. ${NANO_TOOLS}/targets/${NANO_TARGET}/${NANO_ARCH}/nanobsd.conf
 fi
 
 #######################################################################
@@ -230,14 +245,6 @@ NANO_WORLDDIR=${NANO_OBJ}/_.w
 NANO_MAKE_CONF_BUILD=${MAKEOBJDIRPREFIX}/make.conf.build
 NANO_MAKE_CONF_INSTALL=${NANO_OBJ}/make.conf.install
 
-if [ -d ${NANO_TOOLS} ] ; then
-	true
-elif [ -d ${NANO_SRC}/${NANO_TOOLS} ] ; then
-	NANO_TOOLS=${NANO_SRC}/${NANO_TOOLS}
-else
-	echo "NANO_TOOLS directory does not exist" 1>&2
-	exit 1
-fi
 
 if $do_clean ; then
 	true

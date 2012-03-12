@@ -32,7 +32,7 @@ set -e
 # Where to find the NanoBSD-NG code base
 # Default: The directory the script is being run from
 
-if [ "x${NANO_TOOLS}" = "x" ]; then 
+if [ -z "${NANO_TOOLS}" ]; then 
 	NANO_TOOLS=`dirname $0`
 	echo "NANO_TOOLS set to ${NANO_TOOLS}"
 fi
@@ -167,12 +167,12 @@ if [ $# -gt 0 ] ; then
 	usage
 fi
 
-if [ -z ${NANO_TARGET} ]; then
+if [ -z "${NANO_TARGET}" ]; then
 	echo "$0: You must specify a build target"
 	usage
 fi
 
-if [ -z ${NANO_ARCH} ]; then
+if [ -z "${NANO_ARCH}" ]; then
 	NANO_ARCH=`uname -p`
 fi
 

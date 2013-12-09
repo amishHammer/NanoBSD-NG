@@ -32,7 +32,7 @@ set -e
 # Where to find the NanoBSD-NG code base
 # Default: The directory the script is being run from
 
-if [ "x${NANO_TOOLS}" = "x" ]; then 
+if [ -z "${NANO_TOOLS}" ]; then 
 	NANO_TOOLS=`dirname $0`
 	echo "NANO_TOOLS set to ${NANO_TOOLS}"
 fi
@@ -167,12 +167,12 @@ if [ $# -gt 0 ] ; then
 	usage
 fi
 
-if [ "x${NANO_TARGET}" = "x" ]; then
+if [ -z "${NANO_TARGET}" ]; then
 	echo "$0: You must specify a build target"
 	usage
 fi
 
-if [ "x${NANO_ARCH}" = "x" ]; then
+if [ -z "${NANO_ARCH}" ]; then
 	NANO_ARCH=`uname -p`
 fi
 
@@ -237,7 +237,7 @@ esac
 #######################################################################
 # Setup and Export Internal variables
 #
-test -n "${NANO_OBJ}" || NANO_OBJ=/usr/obj/nanobsd.${NANO_NAME}/
+test -n "${NANO_OBJ}" || NANO_OBJ=/usr/obj/nanobsd.${NANO_NAME}.${NANO_ARCH}
 test -n "${MAKEOBJDIRPREFIX}" || MAKEOBJDIRPREFIX=${NANO_OBJ}
 test -n "${NANO_DISKIMGDIR}" || NANO_DISKIMGDIR=${NANO_OBJ}
 
